@@ -39,6 +39,7 @@ https://www.sjsu.edu/faculty/guangliang.chen/Math253S20/lec12laplacian.pdf
 4. Laplacian Eigenmaps for Dimensionality Reduction and Data Representation(2003)
 5. Laplacian Eigenmaps and Spectral Techniques for Embedding and Clustering(2001)
 6. Color image segmentation using Laplacian eigenmaps(2009)
+7. Kernelized Supervised Laplacian Eigenmap for Visualization and Classification of Multi-Label Data(2021) (Supervised LE, and many fascinating visualizations)
 
 
 
@@ -49,5 +50,7 @@ https://www.sjsu.edu/faculty/guangliang.chen/Math253S20/lec12laplacian.pdf
 ## Log
 
 04.01 create github repository, post some learning materials.
+
+04.05 first group meeting.
 
 ## 
