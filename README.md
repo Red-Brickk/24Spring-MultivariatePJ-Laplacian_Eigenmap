@@ -120,6 +120,67 @@ source:
 
 [CIFAR-10 and CIFAR-100 datasets (toronto.edu)](http://www.cs.toronto.edu/~kriz/cifar.html)
 
+6. Brown Corpus Cooccurrence embedding.
+
+Source: https://songxia-sophia.medium.com/word-embedding-of-brown-corpus-using-python-ec09ff4cbf4f
+
+Referring to Xia Song's elegant guide, and edit the code to meet our own need. 
+
+Generated a 300×600 matrix, with row for the first 300 most commonly appeared words, and the 600 columns for left neighbor (window width = 2) cooccurrence and right neighbor (window width = 2) cooccurrence. 
+
+```python
+c_words_left = []
+c_words_right = []
+for v_word in V:
+    left_2_words = []
+    right_2_words = []
+    positions = [x for x, n in enumerate(filter_words) if n == v_word] # locate each word of V in filter_words
+    for i in positions:
+        if i ==0:
+            right_2_word = filter_words[1:3]
+        elif i == 1:
+            left_2_word = filter_words[0]
+            right_2_word = filter_words[1:3]
+        else:
+            left_2_word = filter_words[(i-2):i]
+            right_2_word = filter_words[(i+1):(i+3)]
+
+        left_2_uniq = ls_uniq(left_2_word)
+        left_2_words = left_2_words + left_2_uniq
+        right_2_uniq = ls_uniq(right_2_word)
+        right_2_words = right_2_words + right_2_uniq
+
+    left_words_count = dict(collections.Counter(left_2_words))
+    right_words_count = dict(collections.Counter(right_2_words))
+    window_count = len(positions)
+    for l_word in left_words_count:
+        if l_word in C:
+            lword_fre = left_words_count[l_word]
+            Pr_l = lword_fre/window_count
+            c_words_left.append((v_word, l_word, lword_fre, window_count, Pr_l))
+    for r_word in right_words_count:
+      if r_word in C:
+          rword_fre = right_words_count[r_word]
+          Pr_r = rword_fre/window_count
+          c_words_right.append((v_word, r_word, rword_fre, window_count, Pr_r))
+cwords_left = pd.DataFrame(c_words_left)
+cwords_left.columns = ['V_Word','C_Word','Cword_Count(Left)','Window_Count','Pr_cw']
+cwords_right = pd.DataFrame(c_words_right)
+cwords_right.columns = ['V_Word','C_Word','Cword_Count(Right)','Window_Count','Pr_cw']
+```
+
+```python
+# 使用 pivot_table 来生成矩阵
+left_matrix = cwords_left.pivot_table(index='V_Word', columns='C_Word', values='Cword_Count(Left)', fill_value=0)
+right_matrix = cwords_right.pivot_table(index='V_Word', columns='C_Word', values='Cword_Count(Right)', fill_value=0)
+neighbor_embd = pd.concat([left_matrix, right_matrix],axis=1)
+neighbor_embd.to_csv("corpus_neighboring_embedding_matrix.csv")
+```
+
+For further information, see
+
+https://colab.research.google.com/drive/1l75_g6T4Z7j-otc4Scl2d8l9I7AT28L0#scrollTo=He21jnZniRNi
+
 
 
 ## Output
