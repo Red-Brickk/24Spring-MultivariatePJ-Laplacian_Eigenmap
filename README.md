@@ -40,6 +40,9 @@ https://www.sjsu.edu/faculty/guangliang.chen/Math253S20/lec12laplacian.pdf
 5. Laplacian Eigenmaps and Spectral Techniques for Embedding and Clustering(2001)
 6. Color image segmentation using Laplacian eigenmaps(2009)
 7. Kernelized Supervised Laplacian Eigenmap for Visualization and Classification of Multi-Label Data(2021) (Supervised LE, and many fascinating visualizations)
+8. "What's the intuition behind a Laplacian matrix? "Excellent answer by **[Muni Sreenivas Pydi](https://www.quora.com/profile/Muni-Sreenivas-Pydi)** · 
+
+https://www.quora.com/Whats-the-intuition-behind-a-Laplacian-matrix-Im-not-so-much-interested-in-mathematical-details-or-technical-applications-Im-trying-to-grasp-what-a-laplacian-matrix-actually-represents-and-what-aspects-of-a-graph-it-makes-accessible/answer/Muni-Sreenivas-Pydi
 
 ## Dataset
 
@@ -218,3 +221,20 @@ Ref: https://search.r-project.org/CRAN/refmans/Rdimtools/html/nonlinear_LAPEIG.h
 5. 今後每週若無特殊情況會進行Weekly Meeting，我會在每週日晚調查下一周大家有空的時間，感謝配合~
 6. 請元鴻、暐晋兩位同學負責Mathematics的部分，關注兩篇Paper中的Justification，期待能在Presentation中向同學們介紹，在Report中闡釋；請旭晴、曉汀、翌翔三位同學負責Application部分，關注Paper中的Examples部分的Coding實現，若有可能，也可找其它數據集呈現，期待能在Presentation中向同學們展現算法的威力。進一步的分工請大家再商討。
 6. 第一次Deadline定在4月28日，請大家關注！
+
+
+
+04.14 second group meeting
+
+朋友們晚上好！以下是本次討論的紀要：
+
+1. coding小隊介紹了已經找到/構建出來的數據集：1. Iris；2.Swiss Roll，3. Toy（Horizontal and Vertical Bar）4. Corpus.
+2. 介紹了計算L的兩種方法：do.lapeig函數和手嗑法（比較清楚地知道運行過程）
+3. 數學小隊推薦了Quora上的介紹文章、以及來自SJSU的Slide（都已經傳到github上，大家可以查看）
+4. 介紹了Laplace這一工具的物理背景：對離散數據先求梯度，再求散度；介紹了Heat Kernel的含義；介紹了Beltrami算子，但好像不是特別重要，可以暫時擱置；介紹了分群任務的數學評價標準，以及其與原距離保持任務的聯繫。
+
+Note：
+
+1. 考慮到現在暫時不了解報告順序，數學和coding兩個小隊可以先完成基礎任務，確保能較好地完成展示任務，再求report的進階
+2. 程式碼中，請都使用do.lapeig函數計算L矩陣及其特征值特征向量，提高代碼的通用性
+3. coding小隊前期在摸索，工作多有重疊，接下來可以有更細緻的分工。
