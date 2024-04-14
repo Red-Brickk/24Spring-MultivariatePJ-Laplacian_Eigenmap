@@ -1,0 +1,221 @@
+---
+title: "0409 LE 1st try"
+author: "Brick"
+date: "2024-04-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Now we are trying to apply Laplacian eigen map to the real data. See the first application on iris data. 
+```{r message=FALSE, warning=FALSE}
+# install.packages("Rdimtools")
+```
+# 3D scatter plot
+See 3D scatter plot of the original iris data(take the first 3 variables.)
+
+```{r}
+library(Rdimtools)
+library(plotly)
+## use iris data
+data(iris)
+set.seed(100)
+subid = sample(1:150,150)
+X     = as.matrix(iris[subid,1:4])
+lab   = as.factor(iris[subid,5])
+df_3d <- as.data.frame(X)
+df_3d$lab <- lab
+
+fig_3d <- plot_ly(df_3d, x=~Sepal.Length, y=~Sepal.Width,z=~Petal.Length,color=~lab,size = c(0.8),colors = c('#4AC6B7', '#1972A4', '#965F8A', '#FF7070', '#C61951'))
+fig_3d <- fig_3d %>% add_markers()
+fig_3d <- fig_3d %>% layout(title = '3D scatter plot of original iris dataset')
+
+fig_3d
+```
+
+# paired 2D scatter plots
+See 2D scatter plots for all 6 pairs of variables.
+
+```{r}
+varnames <- colnames(df_3d)
+fig_list <- list()
+count <- 1
+for(i in 1:3){
+  for (j in (i+1):4){
+    fig_2d <- plot_ly(df_3d, x=df_3d[,i], y=df_3d[,j],color=~lab,size = c(0.8),colors = c('#4AC6B7', '#1972A4', '#965F8A', '#FF7070', '#C61951'))
+    fig_2d <- fig_2d %>% add_markers()
+    fig_2d <- fig_2d %>% layout(title = 'scatter plot of original iris dataset.') 
+    fig_list[[count]] <- fig_2d
+    count <- count+1
+    rm(fig_2d)
+  }
+}
+
+# Combine all figures into one subplot
+combined_fig <- subplot(style(fig_list[[1]], showlegend=FALSE),
+                        style(fig_list[[2]], showlegend=FALSE),
+                        style(fig_list[[3]], showlegend=FALSE),
+                        style(fig_list[[4]], showlegend=FALSE),
+                        style(fig_list[[5]], showlegend=FALSE),
+                        style(fig_list[[6]], showlegend=FALSE),
+                        nrows = 3, margin=0.05)
+
+# Display the combined figure
+combined_fig # NOTE! x and y axes need to be added to add readability
+```
+
+
+# Laplacian Eigen map
+Use "proportion" to construct neighborhood map
+
+```{r}
+## try different levels of connectivity
+for (i in c(0.01,0.02,0.03,0.04,0.05,0.10,0.20,0.50,1)){
+  le1 <- do.lapeig(X, type=c("proportion",i), weighted=FALSE)
+  df_le1 <- as.data.frame(le1$Y)
+  colnames(df_le1) <- c("dim1","dim2")
+  df_le1$lab <- lab
+  fig_le1 <- plot_ly(df_le1, x=~dim1, y=~dim2,color=~lab,size = c(0.8),colors = c('#4AC6B7', '#1972A4', '#965F8A', '#FF7070', '#C61951'))
+  fig_le1 <- fig_le1 %>% add_markers()
+  fig_le1 <- fig_le1 %>% layout(title = 'Embedded dimension 1 and 2', plot_bgcolor = "#e5ecf6", xaxis = list(title = 'Embedded dim 1'), 
+           yaxis = list(title = 'Embedded dim 2'), legend = list(title=list(text='<b> Species of Iris </b>')))
+  print(fig_le1)  
+}
+```
+Use "knn(k nearest neighbor)" to construct neighborhood map.
+
+```{r}
+## try different levels of connectivity
+for (k in seq(10,150,10)){
+  le1 <- do.lapeig(X, type=c("knn",k), weighted=FALSE)
+  df_le1 <- as.data.frame(le1$Y)
+  colnames(df_le1) <- c("dim1","dim2")
+  df_le1$lab <- lab
+  fig_le1 <- plot_ly(df_le1, x=~dim1, y=~dim2,color=~lab,size = c(0.8),colors = c('#4AC6B7', '#1972A4', '#965F8A', '#FF7070', '#C61951'))
+  fig_le1 <- fig_le1 %>% add_markers()
+  fig_le1 <- fig_le1 %>% layout(title = paste('Embedded dimension 1 and 2, k=',k), plot_bgcolor = "#e5ecf6", xaxis = list(title = 'Embedded dim 1'), 
+           yaxis = list(title = 'Embedded dim 2'), legend = list(title=list(text='<b> Species of Iris </b>')))
+  print(fig_le1)  
+}
+```
+Use "enn(epsilon nearest neighbor)" to construct neighborhood map.
+
+```{r}
+## try different levels of connectivity
+for (e in seq(1,10,1)){
+  le1 <- do.lapeig(X, type=c("enn",e), weighted=FALSE)
+  df_le1 <- as.data.frame(le1$Y)
+  colnames(df_le1) <- c("dim1","dim2")
+  df_le1$lab <- lab
+  fig_le1 <- plot_ly(df_le1, x=~dim1, y=~dim2,color=~lab,size = c(0.8),colors = c('#4AC6B7', '#1972A4', '#965F8A', '#FF7070', '#C61951'))
+  fig_le1 <- fig_le1 %>% add_markers()
+  fig_le1 <- fig_le1 %>% layout(title = paste('Embedded dimension 1 and 2, enn, e=',e), plot_bgcolor = "#e5ecf6", xaxis = list(title = 'Embedded dim 1'), 
+           yaxis = list(title = 'Embedded dim 2'), legend = list(title=list(text='<b> Species of Iris </b>')))
+  print(fig_le1)  
+}
+```
+
+
+
+# Check the Swiss roll data
+
+```{r}
+load(file="my_Swiss.Rda")
+sub_swiss <- swiss[sample(1:2000,500),]
+fig_3d <- plot_ly(sub_swiss, x=~x, y=~y,z=~z,color=~t,size = c(0.8),colors = c('#4AC6B7', '#1972A4', '#965F8A', '#FF7070', '#C61951'))
+fig_3d <- fig_3d %>% add_markers()
+fig_3d <- fig_3d %>% layout(title = '3D scatter plot of Swiss Roll Data')
+
+fig_3d
+```
+
+
+```{r}
+fig_list <- list()
+count <- 1
+for(i in 1:2){
+  for (j in (i+1):3){
+    fig_2d <- plot_ly(sub_swiss, x=swiss[,i], y=swiss[,j],color=swiss[,4],size = c(0.8),colors = c('#4AC6B7', '#1972A4', '#965F8A', '#FF7070', '#C61951'))
+    fig_2d <- fig_2d %>% add_markers()
+    fig_2d <- fig_2d %>% layout(title = 'scatter plot of original swiss dataset.') 
+    fig_list[[count]] <- fig_2d
+    count <- count+1
+    rm(fig_2d)
+  }
+}
+
+combined_fig <- subplot(fig_list)
+
+# Display the combined figure
+combined_fig # NOTE! x and y axes need to be added to add readability
+```
+
+```{r}
+## try different levels of connectivity
+for(k in seq(50,500,50)){
+le1 <- do.lapeig(sub_swiss, type=c("knn",k), weighted=FALSE)
+df_le1 <- as.data.frame(le1$Y)
+colnames(df_le1) <- c("dim1","dim2")
+df_le1$lab <- sub_swiss$t
+fig_le1 <- plot_ly(df_le1, x=~dim1, y=~dim2,color=~lab,size = c(0.8),colors = c('#4AC6B7', '#1972A4', '#965F8A', '#FF7070', '#C61951'))
+fig_le1 <- fig_le1 %>% add_markers()
+fig_le1 <- fig_le1 %>% layout(title = paste('Embedded dimension 1 and 2, k=',k), plot_bgcolor = "#e5ecf6", xaxis = list(title = 'Embedded dim 1'), 
+         yaxis = list(title = 'Embedded dim 2'), legend = list(title=list(text='<b> Species of Iris </b>')))
+print(fig_le1)
+}
+
+```
+
+
+# Check the Corpus data
+
+```{r}
+load(file="my_Swiss.Rda")
+sub_swiss <- swiss[sample(1:2000,500),]
+fig_3d <- plot_ly(sub_swiss, x=~x, y=~y,z=~z,color=~t,size = c(0.8),colors = c('#4AC6B7', '#1972A4', '#965F8A', '#FF7070', '#C61951'))
+fig_3d <- fig_3d %>% add_markers()
+fig_3d <- fig_3d %>% layout(title = '3D scatter plot of Swiss Roll Data')
+
+fig_3d
+```
+
+
+```{r}
+fig_list <- list()
+count <- 1
+for(i in 1:2){
+  for (j in (i+1):3){
+    fig_2d <- plot_ly(sub_swiss, x=swiss[,i], y=swiss[,j],color=swiss[,4],size = c(0.8),colors = c('#4AC6B7', '#1972A4', '#965F8A', '#FF7070', '#C61951'))
+    fig_2d <- fig_2d %>% add_markers()
+    fig_2d <- fig_2d %>% layout(title = 'scatter plot of original swiss dataset.') 
+    fig_list[[count]] <- fig_2d
+    count <- count+1
+    rm(fig_2d)
+  }
+}
+
+combined_fig <- subplot(fig_list)
+
+# Display the combined figure
+combined_fig # NOTE! x and y axes need to be added to add readability
+```
+
+```{r}
+## try different levels of connectivity
+for(k in seq(50,500,50)){
+le1 <- do.lapeig(sub_swiss, type=c("knn",k), weighted=FALSE)
+df_le1 <- as.data.frame(le1$Y)
+colnames(df_le1) <- c("dim1","dim2")
+df_le1$lab <- sub_swiss$t
+fig_le1 <- plot_ly(df_le1, x=~dim1, y=~dim2,color=~lab,size = c(0.8),colors = c('#4AC6B7', '#1972A4', '#965F8A', '#FF7070', '#C61951'))
+fig_le1 <- fig_le1 %>% add_markers()
+fig_le1 <- fig_le1 %>% layout(title = paste('Embedded dimension 1 and 2, k=',k), plot_bgcolor = "#e5ecf6", xaxis = list(title = 'Embedded dim 1'), 
+         yaxis = list(title = 'Embedded dim 2'), legend = list(title=list(text='<b> Species of Iris </b>')))
+print(fig_le1)
+}
+```
+
+
+

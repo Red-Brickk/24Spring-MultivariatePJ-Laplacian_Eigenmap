@@ -183,6 +183,23 @@ https://colab.research.google.com/drive/1l75_g6T4Z7j-otc4Scl2d8l9I7AT28L0#scroll
 
 
 
+## Implementation
+
+1. Made by hand?
+2. Use R packages......
+
+Ref: https://search.r-project.org/CRAN/refmans/Rdimtools/html/nonlinear_LAPEIG.html
+
+0411update
+
+曉汀：I have tried the Rdimtools package, do.lapeig() function. That's not bad! Some illustration can be found in "Useful Code" folder. 
+
+## Useful Code
+
+0410trylap.Rmd: implement do.lapeig function to iris and my_Swiss dataset, successfully embed the data into a lower dim space, preserving local neighborhood.
+
+
+
 ## Output
 
 
@@ -201,7 +218,3 @@ https://colab.research.google.com/drive/1l75_g6T4Z7j-otc4Scl2d8l9I7AT28L0#scroll
 5. 今後每週若無特殊情況會進行Weekly Meeting，我會在每週日晚調查下一周大家有空的時間，感謝配合~
 6. 請元鴻、暐晋兩位同學負責Mathematics的部分，關注兩篇Paper中的Justification，期待能在Presentation中向同學們介紹，在Report中闡釋；請旭晴、曉汀、翌翔三位同學負責Application部分，關注Paper中的Examples部分的Coding實現，若有可能，也可找其它數據集呈現，期待能在Presentation中向同學們展現算法的威力。進一步的分工請大家再商討。
 6. 第一次Deadline定在4月28日，請大家關注！
-
-
-
-## 

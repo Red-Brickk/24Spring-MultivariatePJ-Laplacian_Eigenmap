@@ -1,0 +1,139 @@
+---
+title: "0409 LE 1st try"
+author: "Brick"
+date: "2024-04-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Now we are trying to apply Laplacian eigen map to the real data. See the first application on iris data. 
+```{r message=FALSE, warning=FALSE}
+# install.packages("Rdimtools")
+```
+
+# 3D scatter plot
+See 3D scatter plot of the original iris data(take the first 3 variables.)
+
+```{r warning=FALSE}
+library(Rdimtools)
+library(plotly)
+```
+
+# Check the Corpus data
+
+```{r}
+setwd("D:/Study/Courses/2024Spring/multivariate/Project/code/0414corpus")
+rawdf <- read.csv("corpus_neighboring_embedding_matrix.csv")
+df <- rawdf[,2:601]
+rownames(df) <- rawdf[,1]
+```
+
+The dimension is too high to generate a meaningful plot.
+
+```{r}
+## try different levels of connectivity
+for(k in c(10)){
+k <- 10
+df_mat <- as.matrix(df, nrows=nrow(df))
+
+le1 <- do.lapeig(df_mat,dim=5, type=c("knn",k), weighted=FALSE)
+
+df_le1 <- as.data.frame(le1$Y)
+colnames(df_le1) <- c("dim1","dim2")
+# df_le1$lab <- sub_swiss$t
+
+fig_le1 <- plot_ly(df_le1, x=~dim1, y=~dim2,size = c(0.8))
+fig_le1 <- fig_le1 %>% add_markers()
+fig_le1 <- fig_le1 %>% layout(title = paste('Embedded dimension 1 and 2, k=',k), plot_bgcolor = "#e5ecf6", xaxis = list(title = 'Embedded dim 1'), 
+         yaxis = list(title = 'Embedded dim 2'), legend = list(title=list(text='<b> Species of Iris </b>')))
+print(fig_le1)
+}
+
+```
+# Problem
+即，本想仍選擇調用do.lapeig函數自動生成laplacian矩陣，但此函數的ndim參數似乎失效，無論成設置什麼值，都只會返回2個特征向量。只好另外再想辦法。
+
+
+```{r}
+library(igraph)
+library(RSpectra)
+# 封裝函數為my_lapeig
+my_lapeig <- function(dframe,k, t,ndim){
+  
+  # 步驟2：使用熱核權重和k最近鄰計算鄰接矩陣
+  dist_matrix <- as.matrix(dist(dframe))  # 歐幾里得距離矩陣
+  
+  # 計算熱核權重
+  weight_matrix <- exp(-dist_matrix^2 / t)
+  
+  # 保留每行k+1個最小值（自身和k個鄰居）
+  adj_matrix <- apply(weight_matrix, 1, function(row) {
+    smallest <- order(row, decreasing = TRUE)[1:(k+1)]
+    weights <- rep(0, length(row))
+    weights[smallest] <- row[smallest]
+    weights
+  })
+  adj_matrix <- (adj_matrix + t(adj_matrix)) / 2  # 確保矩陣是對稱的
+  # 步驟3：構造圖拉普拉斯
+  D <- diag(rowSums(adj_matrix))  # 度矩陣，加權度為各行之和
+  L <- D - adj_matrix  # 未規範化的拉普拉斯
+  
+  # 步驟4：進行特徵分解
+  eigen_result <- eigs_sym(L, k = ndim, which = "SM")  # 計算最小的特徵值
+  low_dim_embedding <- eigen_result$vectors  # 低維嵌入
+  return(list(L = L, eigenvalues = eigen_result$values[1:ndim], eigenvectors = low_dim_embedding))
+}
+```
+
+
+```{r}
+# Assuming dist_matrix is your distance matrix
+# Create a 3x3 layout for the subplots
+par(mfrow = c(3, 3), mar = c(4, 4, 2, 1))
+# Loop through the first 9 rows of the distance matrix
+for (i in 11:19) {
+  hist(dist_matrix[i,], main = paste("Row", i), xlab = "Distance")
+}
+```
+
+
+
+```{r}
+my_eig_vecs <- as.data.frame(my_lapeig(dframe=df,k=10,t=0.01,ndim=4)$eigenvectors)
+colnames(my_eig_vecs) <- c("dim1","dim2","dim3","dim4")
+
+plot(my_eig_vecs$dim1, my_eig_vecs$dim2,ylim = c(0,0.05))
+text(my_eig_vecs$dim1, my_eig_vecs$dim2, labels = rownames(df), pos = 3, cex=0.5)
+
+```
+
+
+# Check the Toy Bar data
+
+```{r}
+load(file="horizontal_bars.Rda")
+load(file="vertical_bars.Rda")
+
+# Convert list of arrays to dataframe
+toy_horizontal <- do.call(rbind, lapply(horizontal_list, as.data.frame))
+toy_horizontal$lab <- 1
+toy_vertical <- do.call(rbind, lapply(vertical_list, as.data.frame))
+toy_vertical$lab <- 2
+
+toy <- rbind(toy_horizontal, toy_vertical)
+```
+
+
+```{r}
+my_eig_vecs <- as.data.frame(my_lapeig(dframe=toy,k=10,t=0.01,ndim=4)$eigenvectors)
+colnames(my_eig_vecs) <- c("dim1","dim2","dim3","dim4")
+my_eig_vecs$lab <- toy$lab
+
+plot(my_eig_vecs$dim1, my_eig_vecs$dim2,col=my_eig_vecs$lab)
+text(my_eig_vecs$dim1, my_eig_vecs$dim2, labels = rownames(df), pos = 3, cex=0.5)
+
+```
+Need to be fixed......

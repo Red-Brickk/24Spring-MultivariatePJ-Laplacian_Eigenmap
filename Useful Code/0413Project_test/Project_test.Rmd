@@ -1,0 +1,114 @@
+---
+title: "Project_test"
+output: html_document
+date: "2024-04-13"
+---
+
+```{r}
+library(igraph)
+library(RSpectra)
+```
+
+### Swiss
+```{r}
+# Swiss roll
+set.seed(24)
+n <- 2000
+t <- runif(n, 0, 10)
+z <- runif(n, 0, 10)
+swiss <- data.frame(x=t*cos(t), y=t*sin(t), z=z, t=t)   
+swiss_normalized <- as.data.frame(scale(swiss[, c("x", "y", "z")]))  # 標準化x, y, z
+```
+
+#### Neighbor & W_ij=1
+```{r}
+# 步驟2：使用k最近鄰計算鄰接矩陣
+k <- 10  # 最近鄰居的數量
+dist_matrix <- as.matrix(dist(swiss_normalized))  # 歐幾里得距離矩陣
+adj_matrix <- apply(dist_matrix, 1, function(row) {
+  indices <- order(row)[1:(k + 1)]
+  weights <- rep(0, length(row))
+  weights[indices] <- 1
+  return(weights)
+})
+adj_matrix <- matrix(unlist(adj_matrix), nrow = nrow(swiss), byrow = TRUE)
+adj_matrix <- (adj_matrix + t(adj_matrix)) > 0
+```
+
+```{r}
+# 步驟3：構造圖拉普拉斯
+D <- diag(rowSums(adj_matrix))  # 度矩陣
+L <- D - adj_matrix  # 未規範化的拉普拉斯
+
+# 步驟4：進行特徵分解
+eigen_result <- eigs_sym(L, k = 6, which = "SM")  # 計算更多的特徵值和特徵向量
+for (i in 1:(length(eigen_result$values) - 1)) {
+  # 使用第i小和第i+1小的特徵向量
+  plot(eigen_result$vectors[, i:(i+1)], col = swiss$t, pch = 19,
+  xlab = paste("Component", i), ylab = paste("Component", i+1),
+  main = paste("Using components", i, "and", i+1))
+}
+```
+
+```{r}
+dist_matrix <- as.matrix(dist(swiss_normalized))
+k_values <- c(5, 10, 15, 20)  # 不同的k值來觀察影響
+
+for (k in k_values) {
+  adj_matrix <- apply(dist_matrix, 1, function(row) {
+    indices <- order(row)[1:(k + 1)]
+    weights <- rep(0, length(row))
+    weights[indices] <- 1
+    return(weights)
+  })
+  adj_matrix <- matrix(unlist(adj_matrix), nrow = nrow(swiss), byrow = TRUE)
+  adj_matrix <- (adj_matrix + t(adj_matrix)) > 0  # 確保矩陣是對稱的
+
+  # 構造圖拉普拉斯
+  D <- diag(rowSums(adj_matrix))  
+  L <- D - adj_matrix
+
+  # 進行特徵分解
+  eigen_result <- eigs_sym(L, k = 3, which = "SM")
+  low_dim_embedding <- eigen_result$vectors
+
+  # 繪製結果
+  plot(low_dim_embedding[, 2:3], col = swiss$t, pch = 19, xlab = "Component 1", ylab = "Component 2",
+       main = paste("Laplacian Eigenmaps with k =", k))
+}
+```
+
+#### Neighbor & kernal heat
+```{r}
+# 步驟2：使用熱核權重和k最近鄰計算鄰接矩陣
+k <- 10  # 最近鄰居的數量
+t <- 2   # 熱核參數
+dist_matrix <- as.matrix(dist(swiss_normalized))  # 歐幾里得距離矩陣
+
+# 計算熱核權重
+weight_matrix <- exp(-dist_matrix^2 / t)
+
+# 保留每行k+1個最小值（自身和k個鄰居）
+adj_matrix <- apply(weight_matrix, 1, function(row) {
+  smallest <- order(row, decreasing = TRUE)[1:(k+1)]
+  weights <- rep(0, length(row))
+  weights[smallest] <- row[smallest]
+  weights
+})
+adj_matrix <- (adj_matrix + t(adj_matrix)) / 2  # 確保矩陣是對稱的
+```
+
+```{r}
+# 步驟3：構造圖拉普拉斯
+D <- diag(rowSums(adj_matrix))  # 度矩陣，加權度為各行之和
+L <- D - adj_matrix  # 未規範化的拉普拉斯
+
+# 步驟4：進行特徵分解
+eigen_result <- eigs_sym(L, k = 3, which = "SM")  # 計算最小的特徵值
+low_dim_embedding <- eigen_result$vectors  # 低維嵌入
+
+# 繪製結果
+plot(low_dim_embedding[, 2:3], col = swiss$t, pch = 19, xlab = "第一主成分", ylab = "第二主成分",
+     main = "瑞士卷的拉普拉斯特徵映射（熱核權重）")
+legend("topright", legend = seq(0, 10, by = 2), col = seq(0, 10, by = 2), pch = 19)
+```

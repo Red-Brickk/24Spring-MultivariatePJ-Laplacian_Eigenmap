@@ -1,0 +1,39 @@
+#使用Laplacian eigenmap進行詞彙資料的降維。我們將使用igraph包來建立圖，並計算拉普拉斯矩陣，然後用Matrix包來處理矩陣運算。首先，需要安裝並載入這些包
+install.packages("igraph")
+install.packages("Matrix")
+library(igraph)
+library(Matrix)
+#接下來，將創建一個簡單的範例圖，其中包含一些節點和邊，用於演示
+# 建立一個簡單的圖
+g <- graph_from_data_frame(d = data.frame(from = c("apple", "banana", "banana", "orange", "apple", "banana"),
+                                          to = c("banana", "orange", "apple", "apple", "orange", "orange")),
+                           directed = FALSE)
+
+# 設定邊的權重
+E(g)$weight <- c(1, 2, 1, 2, 3, 1)
+
+# 繪製原始圖形
+plot(g, vertex.color="skyblue", vertex.size=20, vertex.frame.color="#ffffff", vertex.label.color="black", 
+     vertex.label.cex=0.8, edge.width=E(g)$weight, layout=layout_nicely(g), main="Original Graph of Words")
+
+# 計算拉普拉斯矩陣
+L <- laplacian_matrix(g)
+
+#拉普拉斯矩陣已經計算好了。接者使用特徵值分解來找到特徵向量
+# 特徵值分解
+eigen_res <- eigen(as.matrix(L))
+
+# 特徵值和特徵向量
+eigenvalues <- eigen_res$values
+eigenvectors <- eigen_res$vectors
+#最後，選取最小的幾個非零特徵值對應的特徵向量來作為降維後的座標
+# 通常會選擇最小的幾個非零特徵值對應的特徵向量
+# 在這裡，假設選擇第2和第3小的特徵值
+dim2_data <- eigenvectors[,2:3]
+
+# 印出降維後的座標
+print(dim2_data)
+# 假設 dim2_data 包含了降維後的2維座標
+plot(dim2_data[,1], dim2_data[,2], main="Laplacian Eigenmap 2D Representation", xlab="Component 1", ylab="Component 2", pch=19, col=rainbow(nrow(dim2_data)))
+legend("topright", legend=unique(as.character(V(g)$name)), col=rainbow(length(unique(as.character(V(g)$name)))), pch=19)
+
