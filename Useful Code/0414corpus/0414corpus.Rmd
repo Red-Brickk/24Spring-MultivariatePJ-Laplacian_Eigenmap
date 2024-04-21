@@ -84,12 +84,13 @@ my_lapeig <- function(dframe,k, t,ndim){
   # 步驟4：進行特徵分解
   eigen_result <- eigs_sym(L, k = ndim, which = "SM")  # 計算最小的特徵值
   low_dim_embedding <- eigen_result$vectors  # 低維嵌入
-  return(list(L = L, eigenvalues = eigen_result$values[1:ndim], eigenvectors = low_dim_embedding))
+  return(list(L = L, eigenvalues = eigen_result$values[1:ndim], eigenvectors = low_dim_embedding,dist = dist_matrix))
 }
 ```
 
 
 ```{r}
+dist_matrix <- my_lapeig(dframe=df,k=10,t=0.01,ndim=4)$dist
 # Assuming dist_matrix is your distance matrix
 # Create a 3x3 layout for the subplots
 par(mfrow = c(3, 3), mar = c(4, 4, 2, 1))
@@ -98,7 +99,6 @@ for (i in 11:19) {
   hist(dist_matrix[i,], main = paste("Row", i), xlab = "Distance")
 }
 ```
-
 
 
 ```{r}
