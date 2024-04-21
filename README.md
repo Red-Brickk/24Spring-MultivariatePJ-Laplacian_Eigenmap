@@ -205,6 +205,8 @@ Ref: https://search.r-project.org/CRAN/refmans/Rdimtools/html/nonlinear_LAPEIG.h
 
 ## Output
 
+0421 更新了讀論文所學習到的一些數學知識，歡迎大家補充和指正！
+
 
 
 ## Log
@@ -238,6 +240,10 @@ Note：
 1. 考慮到現在暫時不了解報告順序，數學和coding兩個小隊可以先完成基礎任務，確保能較好地完成展示任務，再求report的進階
 2. 程式碼中，請都使用do.lapeig函數計算L矩陣及其特征值特征向量，提高代碼的通用性
 3. coding小隊前期在摸索，工作多有重疊，接下來可以有更細緻的分工。
+
+
+
+0421 third group meeting
 
 
 
