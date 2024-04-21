@@ -7,11 +7,16 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
 ```
 
 
-本 R markdown 筆記本用於處理MNIST數據集。
+本 R markdown 筆記本用於處理corpus數據集。
+首先，對此數據做一簡單介紹：
+Brown Corpus是著名的英文語料庫，內含若干篇文字材料。建立數據集的步驟如下：
+1. 統計出語料庫中出現頻率最高的300個單詞（排除停用詞——無實際意義的詞、虛詞），記為T300
+2. 對T300中每一個詞，找到其在語料庫中出現的位置（可能出現成百上千次）
+3. 從此位置出發，向左和向右各檢查兩個單詞，查看是否有T300中的單詞。
+4. 對A,B,C都是T300中的詞，每次在A詞左邊1格或2格的位置見到B詞，就在數據集的第A行，第B列加1；每次在A詞右邊1格或2格的位置見到C詞，就在數據集的第A行，第300+C列的位置加1。
 
 
 # 引入必要的庫
@@ -26,31 +31,33 @@ library(plotly) # 用於交互式繪圖
 # 檢查數據
 
 ```{r}
-rawdf <- read.csv("D:/Study/Courses/2024Spring/multivariate/Project/code/0421MNIST/mnist_test.csv")
-
+setwd("D:/Study/Courses/2024Spring/multivariate/Project/code/0420corpus成功")
+rawdf <- read.csv("corpus_neighboring_embedding_matrix.csv")
 # 表格的第一列是單詞名，故排掉
-df <- rawdf[1:1000,2:785]
-lab <- rawdf[1:1000,1]
-
+df <- rawdf[,2:601]
+# 將單詞名作為數據框的行名
+rownames(df) <- rawdf[,1]
+# 查看單詞
+# rownames(df)
 ```
 
 ## 了解數據集的基本情況
 
 ```{r}
-# 出现次数最多的单词对是？
-max(df)
-# 每个单词对平均出现多少次？
-sum(df)/(300*600)
+# # 出现次数最多的单词对是？
+# max(df)
+# # 每个单词对平均出现多少次？
+# sum(df)/(300*600)
 # # 每个单词见证了多少个单词对？
 rsum <- apply(df, 1, sum)
-hist(rsum, main="Row Sum (How many word pairs do the 300 words observe)", xlab="row sum")
+# hist(rsum, main="Row Sum (How many word pairs do the 300 words observe)", xlab="row sum")
 cat("Row Sum Top 10\n")
 sort(rsum,decreasing=T)[1:10]
 cat("\nRow Sum Least 10\n")
 sort(rsum,decreasing=F)[1:10]
 # # 每个单词多少次作为语境词出现？
 csum <- apply(df, 2, sum)
-hist(csum, main="Column Sum (How often does a word be a context word)", xlab="column sum")
+# hist(csum, main="Column Sum (How often does a word be a context word)", xlab="column sum")
 cat("\nColumn Sum Top 10\n")
 sort(csum,decreasing=T)[1:10]
 cat("\nColumn Sum Least 10\n")
@@ -181,11 +188,9 @@ test <- function(df_mat,ndim,weighted,method,k,epsilon,tt,figmain,manual=FALSE){
   rownames(df_le1) <- rownames(df)
   
   # 创建散点图
-  p <- plot_ly(data = df_le1, x = ~map1, y = ~map3,color=lab, type = 'scatter', mode = 'markers') %>%
-    
-    # p <- plot_ly(data = df_le1, x = ~map1, y = ~map2, type = 'scatter', mode = 'markers', marker = list(color = 'rgba(0, 0, 255, 0.5)')) %>%
+  p <- plot_ly(data = df_le1, x = ~map1, y = ~map2, type = 'scatter', mode = 'markers', marker = list(color = 'rgba(0, 0, 255, 0.5)')) %>%
   # 添加文本标签
-  # add_text(text = rownames(df_le1), textposition = 'top', showlegend = FALSE, hoverinfo = 'text', textfont = list(color = 'blue', size = 10))  %>%
+  add_text(text = rownames(df_le1), textposition = 'top', showlegend = FALSE, hoverinfo = 'text', textfont = list(color = 'blue', size = 10))  %>%
     layout(title = figmain)
   print(p)
 }
@@ -204,7 +209,7 @@ epsilon <- 0.5 # 相鄰的閾值？（初得到數據集不了解其距離尺度
 df_mat <- as.matrix(df, nrows=nrow(df))
 
 # 需要時可用循環比較各參數值
-for (k in 9:10){
+for (k in 1:10){
   test(df_mat,weighted, method=method, k=k, ndim=3, figmain=paste("Laplacian Eigen Map, knn, k=",k))
 }
 ```
@@ -306,17 +311,17 @@ print(plist)
 # Select number of clusters
 k <- 7
 set.seed(123)
-# # Build model with k clusters: km.out
-# km.out <- kmeans(df_le1, centers = k, nstart = 20)
-# lab <- km.out$cluster
+# Build model with k clusters: km.out
+km.out <- kmeans(df_le1, centers = k, nstart = 20)
+lab <- km.out$cluster
 
 library(dplyr)
-colors <- c("red", "blue", "green", "purple","cyan","lightblue","lightgreen","black","yellow","magenta")
-labnames <- c("情態動詞","特殊名詞","難分辨","動詞及過去式","代詞","系動詞、介詞","難分辨2","aaa","bbb","ccc")
+colors <- c("red", "blue", "green", "purple","cyan","lightblue","lightgreen","black")
+labnames <- c("情態動詞","特殊名詞","難分辨","動詞及過去式","代詞","系動詞、介詞","難分辨2")
 
 # 创建散点图
 plist <- list()
-plist[[1]] <- plot_ly(data = df_le1, x = ~map1, y = ~map2, color=colors[lab+1], name = labnames[lab+1],type = 'scatter', mode = 'markers') %>% 
+plist[[1]] <- plot_ly(data = df_le1, x = ~map1, y = ~map2, color=colors[lab], name = labnames[lab],type = 'scatter', mode = 'markers') %>% 
   add_text(text = rownames(df_le1), textposition = 'top', showlegend = FALSE, hoverinfo = 'text', textfont = list( size = 10))  %>%
   layout(title = paste("Laplacian Eigen Map, knn, weighted k=8, dim1 and dim2"))
 
@@ -343,7 +348,7 @@ plist[[6]] <- plot_ly(data = df_le1, x = ~map3, y = ~map4, color=colors[lab],nam
   add_text(text = rownames(df_le1), textposition = 'top', showlegend = FALSE, hoverinfo = 'text', textfont = list(size = 10))  %>%
   layout(title = paste("Laplacian Eigen Map, knn, weighted k=8, dim3 and dim4"))
 
-print(plist[[1]])
+print(plist)
 
 ```
 
