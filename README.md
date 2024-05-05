@@ -44,6 +44,12 @@ https://www.sjsu.edu/faculty/guangliang.chen/Math253S20/lec12laplacian.pdf
 
 https://www.quora.com/Whats-the-intuition-behind-a-Laplacian-matrix-Im-not-so-much-interested-in-mathematical-details-or-technical-applications-Im-trying-to-grasp-what-a-laplacian-matrix-actually-represents-and-what-aspects-of-a-graph-it-makes-accessible/answer/Muni-Sreenivas-Pydi
 
+9. Laplacian-Based Dimensionality Reduction Including Spectral Clustering,Laplacian Eigenmap, Locality Preserving Projection, Graph Embedding, and Diffusion Map: Tutorial and Survey by Ghojogh et al
+
+
+
+Wonderful tutorial and survey for Laplacian based dimensionality methods.
+
 ## Dataset
 
 1. Swiss roll data (by Han-Ming Wu).
